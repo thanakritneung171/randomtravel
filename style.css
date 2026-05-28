@@ -303,19 +303,6 @@ h2 {
   100% { transform: scale(1); }
 }
 
-/* Cooldown display */
-.cooldown {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #B09070;
-  background: rgba(201, 168, 76, 0.08);
-  border: 1.5px dashed rgba(201, 168, 76, 0.4);
-  padding: 14px 32px;
-  border-radius: 100px;
-  letter-spacing: 0.3px;
-}
-
-.cooldown.hidden,
 .random-btn.hidden { display: none; }
 
 /* Counter */

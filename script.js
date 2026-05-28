@@ -378,25 +378,8 @@ let cooldownTimer = null;
 
 function startCooldown(remaining) {
   const btn = document.getElementById('randomBtn');
-  const cd = document.getElementById('cooldown');
   btn.classList.add('hidden');
-  cd.classList.remove('hidden');
-
-  const endsAt = Date.now() + remaining;
-
-  function tick() {
-    const left = endsAt - Date.now();
-    if (left <= 0) {
-      btn.classList.remove('hidden');
-      cd.classList.add('hidden');
-      return;
-    }
-    const m = Math.floor(left / 60000);
-    const s = Math.floor((left % 60000) / 1000);
-    cd.textContent = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
-    cooldownTimer = setTimeout(tick, 1000);
-  }
-  tick();
+  cooldownTimer = setTimeout(() => btn.classList.remove('hidden'), remaining);
 }
 
 function restoreSession() {
