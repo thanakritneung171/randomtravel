@@ -343,7 +343,12 @@ function toggleCategory(cat) {
   resetCard();
 }
 
+function isOnCooldown() {
+  return document.getElementById('randomBtn').classList.contains('hidden');
+}
+
 function randomCategory() {
+  if (isOnCooldown()) return;
   const cats = [...categoryChips.keys()].filter(k => k !== null);
   const currentSingle = selectedCategories.size === 1 ? [...selectedCategories][0] : null;
   let cat;
@@ -369,12 +374,38 @@ function saveSession(place) {
   }));
 }
 
+let cooldownTimer = null;
+
+function startCooldown(remaining) {
+  const btn = document.getElementById('randomBtn');
+  const cd = document.getElementById('cooldown');
+  btn.classList.add('hidden');
+  cd.classList.remove('hidden');
+
+  const endsAt = Date.now() + remaining;
+
+  function tick() {
+    const left = endsAt - Date.now();
+    if (left <= 0) {
+      btn.classList.remove('hidden');
+      cd.classList.add('hidden');
+      return;
+    }
+    const m = Math.floor(left / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    cd.textContent = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
+    cooldownTimer = setTimeout(tick, 1000);
+  }
+  tick();
+}
+
 function restoreSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return false;
     const { placeName, categories, ts } = JSON.parse(raw);
-    if (Date.now() - ts > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return false; }
+    const elapsed = Date.now() - ts;
+    if (elapsed > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return false; }
 
     const place = places.find(p => p.name === placeName);
     if (!place) return false;
@@ -382,6 +413,7 @@ function restoreSession() {
     categories.forEach(cat => selectedCategories.add(cat));
     syncChips();
     showPlace(place, false);
+    startCooldown(SESSION_TTL - elapsed);
     return true;
   } catch { return false; }
 }
@@ -410,6 +442,7 @@ function showPlace(place, animate = true) {
 }
 
 function randomPlace() {
+  if (isOnCooldown()) return;
   const filtered = getFiltered();
   if (filtered.length === 0) return;
 
@@ -427,6 +460,7 @@ function randomPlace() {
   const place = filtered[idx];
   saveSession(place);
   showPlace(place, true);
+  startCooldown(SESSION_TTL);
 }
 
 buildFilterBar();
