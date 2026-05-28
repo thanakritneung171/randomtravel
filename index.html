@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สุ่มที่เที่ยวเชียงใหม่ 🌿</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🌿</div>
+      <h1>สุ่มที่เที่ยว<span>เชียงใหม่</span></h1>
+      <p class="subtitle">ไม่รู้จะไปไหน? ให้เราช่วยเลือกให้!</p>
+    </header>
+
+    <div id="initialState" class="initial-state">
+      <div class="compass">🧭</div>
+      <p>กดปุ่มด้านล่างเพื่อสุ่มสถานที่!</p>
+    </div>
+
+    <div id="card" class="card hidden">
+      <div class="card-category" id="cardCategory"></div>
+      <div class="card-emoji" id="cardEmoji"></div>
+      <h2 id="cardName"></h2>
+      <p class="card-name-en" id="cardNameEn"></p>
+      <p class="card-desc" id="cardDesc"></p>
+      <a id="cardMap" href="#" target="_blank" rel="noopener noreferrer" class="map-btn">
+        📍 ดูแผนที่ Google Maps
+      </a>
+    </div>
+
+    <button id="randomBtn" class="random-btn" onclick="randomPlace()">
+      🎲 สุ่มสถานที่!
+    </button>
+
+    <p class="counter" id="counter"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
