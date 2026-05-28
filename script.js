@@ -283,13 +283,13 @@ const places = [
 ];
 
 let lastIndex = -1;
-let selectedCategory = null;
+const selectedCategories = new Set();
 const categoryChips = new Map();
 
 function getFiltered() {
-  return selectedCategory
-    ? places.filter(p => p.category === selectedCategory)
-    : places;
+  return selectedCategories.size === 0
+    ? places
+    : places.filter(p => selectedCategories.has(p.category));
 }
 
 function buildFilterBar() {
@@ -299,7 +299,7 @@ function buildFilterBar() {
   const allBtn = document.createElement('button');
   allBtn.className = 'filter-chip active';
   allBtn.textContent = 'ทั้งหมด';
-  allBtn.addEventListener('click', () => selectCategory(null, allBtn));
+  allBtn.addEventListener('click', selectAll);
   categoryChips.set(null, allBtn);
   bar.appendChild(allBtn);
 
@@ -307,20 +307,20 @@ function buildFilterBar() {
     const btn = document.createElement('button');
     btn.className = 'filter-chip';
     btn.textContent = cat;
-    btn.addEventListener('click', () => selectCategory(cat, btn));
+    btn.addEventListener('click', () => toggleCategory(cat));
     categoryChips.set(cat, btn);
     bar.appendChild(btn);
   });
 }
 
-function selectCategory(cat, clickedBtn) {
-  if (selectedCategory === cat) return;
-  selectedCategory = cat;
-  lastIndex = -1;
+function syncChips() {
+  categoryChips.get(null).classList.toggle('active', selectedCategories.size === 0);
+  categoryChips.forEach((btn, cat) => {
+    if (cat !== null) btn.classList.toggle('active', selectedCategories.has(cat));
+  });
+}
 
-  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-  clickedBtn.classList.add('active');
-
+function resetCard() {
   const card = document.getElementById('card');
   if (!card.classList.contains('hidden')) {
     card.classList.add('hidden');
@@ -329,14 +329,32 @@ function selectCategory(cat, clickedBtn) {
   }
 }
 
+function selectAll() {
+  selectedCategories.clear();
+  lastIndex = -1;
+  syncChips();
+  resetCard();
+}
+
+function toggleCategory(cat) {
+  selectedCategories.has(cat) ? selectedCategories.delete(cat) : selectedCategories.add(cat);
+  lastIndex = -1;
+  syncChips();
+  resetCard();
+}
+
 function randomCategory() {
   const cats = [...categoryChips.keys()].filter(k => k !== null);
+  const currentSingle = selectedCategories.size === 1 ? [...selectedCategories][0] : null;
   let cat;
   do {
     cat = cats[Math.floor(Math.random() * cats.length)];
-  } while (cats.length > 1 && cat === selectedCategory);
+  } while (cats.length > 1 && cat === currentSingle);
 
-  selectCategory(cat, categoryChips.get(cat));
+  selectedCategories.clear();
+  selectedCategories.add(cat);
+  lastIndex = -1;
+  syncChips();
   randomPlace();
 }
 
@@ -371,7 +389,11 @@ function randomPlace() {
   void card.offsetWidth;
   card.classList.add('animate');
 
-  const label = selectedCategory ? selectedCategory : 'ทั้งหมด';
+  const label = selectedCategories.size === 0
+    ? 'ทั้งหมด'
+    : selectedCategories.size <= 2
+      ? [...selectedCategories].join(' + ')
+      : `${selectedCategories.size} หมวด`;
   document.getElementById('counter').textContent =
     `${filtered.length} สถานที่ในหมวด "${label}"`;
 }
