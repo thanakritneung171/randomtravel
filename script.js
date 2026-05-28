@@ -283,8 +283,46 @@ const places = [
 ];
 
 let lastIndex = -1;
+let selectedCategory = null;
+
+function getFiltered() {
+  return selectedCategory
+    ? places.filter(p => p.category === selectedCategory)
+    : places;
+}
+
+function buildFilterBar() {
+  const categories = ['ทั้งหมด', ...new Set(places.map(p => p.category))];
+  const bar = document.getElementById('filterBar');
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip' + (cat === 'ทั้งหมด' ? ' active' : '');
+    btn.textContent = cat;
+    btn.addEventListener('click', () => selectCategory(cat === 'ทั้งหมด' ? null : cat, btn));
+    bar.appendChild(btn);
+  });
+}
+
+function selectCategory(cat, clickedBtn) {
+  if (selectedCategory === cat) return;
+  selectedCategory = cat;
+  lastIndex = -1;
+
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  clickedBtn.classList.add('active');
+
+  const card = document.getElementById('card');
+  if (!card.classList.contains('hidden')) {
+    card.classList.add('hidden');
+    document.getElementById('initialState').style.display = '';
+    document.getElementById('counter').textContent = '';
+  }
+}
 
 function randomPlace() {
+  const filtered = getFiltered();
+  if (filtered.length === 0) return;
+
   const btn = document.getElementById('randomBtn');
   btn.classList.remove('pop');
   void btn.offsetWidth;
@@ -292,11 +330,11 @@ function randomPlace() {
 
   let idx;
   do {
-    idx = Math.floor(Math.random() * places.length);
-  } while (idx === lastIndex && places.length > 1);
-  lastIndex = idx;
+    idx = Math.floor(Math.random() * filtered.length);
+  } while (filtered.length > 1 && filtered[idx] === places[lastIndex]);
+  lastIndex = places.indexOf(filtered[idx]);
 
-  const place = places[idx];
+  const place = filtered[idx];
   const card = document.getElementById('card');
   const initialState = document.getElementById('initialState');
 
@@ -312,6 +350,9 @@ function randomPlace() {
   void card.offsetWidth;
   card.classList.add('animate');
 
+  const label = selectedCategory ? selectedCategory : 'ทั้งหมด';
   document.getElementById('counter').textContent =
-    `${places.length} สถานที่ในเชียงใหม่ (กำลังแสดง ${idx + 1}/${places.length})`;
+    `${filtered.length} สถานที่ในหมวด "${label}"`;
 }
+
+buildFilterBar();
