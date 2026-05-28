@@ -358,6 +358,57 @@ function randomCategory() {
   randomPlace();
 }
 
+const SESSION_KEY = 'randomtravel_session';
+const SESSION_TTL = 5 * 60 * 1000;
+
+function saveSession(place) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    placeName: place.name,
+    categories: [...selectedCategories],
+    ts: Date.now()
+  }));
+}
+
+function restoreSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const { placeName, categories, ts } = JSON.parse(raw);
+    if (Date.now() - ts > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return false; }
+
+    const place = places.find(p => p.name === placeName);
+    if (!place) return false;
+
+    categories.forEach(cat => selectedCategories.add(cat));
+    syncChips();
+    showPlace(place, false);
+    return true;
+  } catch { return false; }
+}
+
+function showPlace(place, animate = true) {
+  document.getElementById('cardCategory').textContent = place.category;
+  document.getElementById('cardEmoji').textContent = place.emoji;
+  document.getElementById('cardName').textContent = place.name;
+  document.getElementById('cardNameEn').textContent = place.nameEn;
+  document.getElementById('cardDesc').textContent = place.desc;
+  document.getElementById('cardMap').href = place.mapUrl;
+
+  const card = document.getElementById('card');
+  document.getElementById('initialState').style.display = 'none';
+  card.classList.remove('hidden', 'animate');
+  if (animate) { void card.offsetWidth; card.classList.add('animate'); }
+
+  const filtered = getFiltered();
+  const label = selectedCategories.size === 0
+    ? 'ทั้งหมด'
+    : selectedCategories.size <= 2
+      ? [...selectedCategories].join(' + ')
+      : `${selectedCategories.size} หมวด`;
+  document.getElementById('counter').textContent =
+    `${filtered.length} สถานที่ในหมวด "${label}"`;
+}
+
 function randomPlace() {
   const filtered = getFiltered();
   if (filtered.length === 0) return;
@@ -374,28 +425,9 @@ function randomPlace() {
   lastIndex = places.indexOf(filtered[idx]);
 
   const place = filtered[idx];
-  const card = document.getElementById('card');
-  const initialState = document.getElementById('initialState');
-
-  document.getElementById('cardCategory').textContent = place.category;
-  document.getElementById('cardEmoji').textContent = place.emoji;
-  document.getElementById('cardName').textContent = place.name;
-  document.getElementById('cardNameEn').textContent = place.nameEn;
-  document.getElementById('cardDesc').textContent = place.desc;
-  document.getElementById('cardMap').href = place.mapUrl;
-
-  initialState.style.display = 'none';
-  card.classList.remove('hidden', 'animate');
-  void card.offsetWidth;
-  card.classList.add('animate');
-
-  const label = selectedCategories.size === 0
-    ? 'ทั้งหมด'
-    : selectedCategories.size <= 2
-      ? [...selectedCategories].join(' + ')
-      : `${selectedCategories.size} หมวด`;
-  document.getElementById('counter').textContent =
-    `${filtered.length} สถานที่ในหมวด "${label}"`;
+  saveSession(place);
+  showPlace(place, true);
 }
 
 buildFilterBar();
+restoreSession();
