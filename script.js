@@ -284,6 +284,7 @@ const places = [
 
 let lastIndex = -1;
 let selectedCategory = null;
+const categoryChips = new Map();
 
 function getFiltered() {
   return selectedCategory
@@ -292,13 +293,22 @@ function getFiltered() {
 }
 
 function buildFilterBar() {
-  const categories = ['ทั้งหมด', ...new Set(places.map(p => p.category))];
+  const cats = [...new Set(places.map(p => p.category))];
   const bar = document.getElementById('filterBar');
-  categories.forEach(cat => {
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-chip active';
+  allBtn.textContent = 'ทั้งหมด';
+  allBtn.addEventListener('click', () => selectCategory(null, allBtn));
+  categoryChips.set(null, allBtn);
+  bar.appendChild(allBtn);
+
+  cats.forEach(cat => {
     const btn = document.createElement('button');
-    btn.className = 'filter-chip' + (cat === 'ทั้งหมด' ? ' active' : '');
+    btn.className = 'filter-chip';
     btn.textContent = cat;
-    btn.addEventListener('click', () => selectCategory(cat === 'ทั้งหมด' ? null : cat, btn));
+    btn.addEventListener('click', () => selectCategory(cat, btn));
+    categoryChips.set(cat, btn);
     bar.appendChild(btn);
   });
 }
@@ -317,6 +327,17 @@ function selectCategory(cat, clickedBtn) {
     document.getElementById('initialState').style.display = '';
     document.getElementById('counter').textContent = '';
   }
+}
+
+function randomCategory() {
+  const cats = [...categoryChips.keys()].filter(k => k !== null);
+  let cat;
+  do {
+    cat = cats[Math.floor(Math.random() * cats.length)];
+  } while (cats.length > 1 && cat === selectedCategory);
+
+  selectCategory(cat, categoryChips.get(cat));
+  randomPlace();
 }
 
 function randomPlace() {
